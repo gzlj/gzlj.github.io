@@ -62,6 +62,54 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-kubernetes pod之间通信的抓包" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/10/04/kubernetes pod之间通信的抓包/" class="article-date">
+  <time datetime="2019-10-03T17:55:27.882Z" itemprop="datePublished">2019-10-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/10/04/kubernetes pod之间通信的抓包/">docker搭建zookeeper集群</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="环境概要"><a href="#环境概要" class="headerlink" title="环境概要"></a>环境概要</h1><p>kubernetes版本：v1.15.0<br>操作系统: centos7<br>192.168.1.70——master节点——flannel子网10.244.0.0/24<br>192.168.1.71——node节点——flannel子网10.244.1.0/24<br><img src="https://img-blog.csdnimg.cn/20191003225922807.png" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/20191003225944206.png" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/20191003225949839.png" alt="在这里插入图片描述"></p>
+<h1 id="情景1：在master节点上发送ICMP包到node节点上的pod"><a href="#情景1：在master节点上发送ICMP包到node节点上的pod" class="headerlink" title="情景1：在master节点上发送ICMP包到node节点上的pod"></a>情景1：在master节点上发送ICMP包到node节点上的pod</h1><p><img src="https://img-blog.csdnimg.cn/20191003230039881.png" alt="在这里插入图片描述"></p>
+<h2 id="在master节点上监听外网卡ens32"><a href="#在master节点上监听外网卡ens32" class="headerlink" title="在master节点上监听外网卡ens32"></a>在master节点上监听外网卡ens32</h2><p>#8472是flannel进程监听的端口<br>#10.244.0.0是源VTEP设备的IP<br>#10.244.1.9是目的Pod的IP<br>[root@master ~]# tcpdump udp -i ens32 -nn</p>
+<p>14:42:43.792927 IP 192.168.1.70.44197 &gt; 192.168.1.71.8472: OTV, flags [I] (0x08), overlay 0, instance 1<br>IP 10.244.0.0 &gt; 10.244.1.9: ICMP echo <strong>request</strong>, id 48129, seq 441, length 64<br>14:42:43.793258 IP 192.168.1.71.41132 &gt; 192.168.1.70.8472: OTV, flags [I] (0x08), overlay 0, instance 1<br>IP 10.244.1.9 &gt; 10.244.0.0: ICMP echo <strong>reply</strong>, id 48129, seq 441, length 64</p>
+<p>发现：数据包外层IP是双方宿主机IP，内层IP是flannel.1网卡的IP和目标pod的IP</p>
+<h2 id="在node1节点上监听flannel-1设备和cni0设备"><a href="#在node1节点上监听flannel-1设备和cni0设备" class="headerlink" title="在node1节点上监听flannel.1设备和cni0设备"></a>在node1节点上监听flannel.1设备和cni0设备</h2><p>监听flannel.1设备<br><img src="https://img-blog.csdnimg.cn/20191003230153816.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br>监听cni0设备</p>
+<p><img src="https://img-blog.csdnimg.cn/20191003230200996.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<h1 id="情景2：master的Pod中ping-node1节点上的Pod"><a href="#情景2：master的Pod中ping-node1节点上的Pod" class="headerlink" title="情景2：master的Pod中ping node1节点上的Pod"></a>情景2：master的Pod中ping node1节点上的Pod</h1><p>进入pod中去ping另一个节点上的pod<br><img src="https://img-blog.csdnimg.cn/2019100323023639.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<h2 id="在master节点上监听外网卡ens32-1"><a href="#在master节点上监听外网卡ens32-1" class="headerlink" title="在master节点上监听外网卡ens32"></a>在master节点上监听外网卡ens32</h2><p>#8472是flannel进程监听的端口<br>#10.244.0.5是源Pod的IP<br>#10.244.1.9是目的Pod的IP<br>[root@master ~]# tcpdump udp -i ens32 -nn<br>15:11:18.245905 IP 192.168.1.70.59468 &gt; 192.168.1.71.8472: OTV, flags [I] (0x08), overlay 0, instance 1<br>IP 10.244.0.5 &gt; 10.244.1.9: ICMP echo request, id 4352, seq 0, length 64<br>15:11:18.246494 IP 192.168.1.71.60179 &gt; 192.168.1.70.8472: OTV, flags [I] (0x08), overlay 0, instance 1<br>IP 10.244.1.9 &gt; 10.244.0.5: ICMP echo reply, id 4352, seq 0, length 64</p>
+<p>发现：数据包外层IP是双方宿主机IP，内层IP是两个pod的IP</p>
+<h2 id="在node1节点上监听flannel-1设备和cni0设备-1"><a href="#在node1节点上监听flannel-1设备和cni0设备-1" class="headerlink" title="在node1节点上监听flannel.1设备和cni0设备"></a>在node1节点上监听flannel.1设备和cni0设备</h2><p><img src="https://img-blog.csdnimg.cn/20191003230319720.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<p><img src="https://img-blog.csdnimg.cn/20191003230325299.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/10/04/kubernetes pod之间通信的抓包/" data-id="ck1b0460o0000ncri42v0nkpf" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-docker、namespace、crgoup的基础原理和测试" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2019/10/04/docker、namespace、crgoup的基础原理和测试/" class="article-date">
@@ -290,6 +338,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2019/10/04/kubernetes pod之间通信的抓包/">docker搭建zookeeper集群</a>
+          </li>
         
           <li>
             <a href="/2019/10/04/docker、namespace、crgoup的基础原理和测试/">docker、namespace、crgoup的基础原理和测试</a>

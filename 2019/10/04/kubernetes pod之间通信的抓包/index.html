@@ -5,11 +5,11 @@
   
 
   
-  <title>docker搭建zookeeper集群 | Hexo</title>
+  <title>kubernetes pod之间通信的抓包 | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="环境概要kubernetes版本：v1.15.0操作系统: centos7192.168.1.70——master节点——flannel子网10.244.0.0/24192.168.1.71——node节点——flannel子网10.244.1.0/24 情景1：在master节点上发送ICMP包到node节点上的pod 在master节点上监听外网卡ens32#8472是flannel进程监听的">
 <meta property="og:type" content="article">
-<meta property="og:title" content="docker搭建zookeeper集群">
+<meta property="og:title" content="kubernetes pod之间通信的抓包">
 <meta property="og:url" content="http://yoursite.com/2019/10/04/kubernetes pod之间通信的抓包/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="环境概要kubernetes版本：v1.15.0操作系统: centos7192.168.1.70——master节点——flannel子网10.244.0.0/24192.168.1.71——node节点——flannel子网10.244.1.0/24 情景1：在master节点上发送ICMP包到node节点上的pod 在master节点上监听外网卡ens32#8472是flannel进程监听的">
@@ -23,9 +23,9 @@
 <meta property="og:image" content="https://img-blog.csdnimg.cn/2019100323023639.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70">
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20191003230319720.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70">
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20191003230325299.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70">
-<meta property="og:updated_time" content="2019-10-03T17:56:06.140Z">
+<meta property="og:updated_time" content="2019-10-04T06:12:44.225Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="docker搭建zookeeper集群">
+<meta name="twitter:title" content="kubernetes pod之间通信的抓包">
 <meta name="twitter:description" content="环境概要kubernetes版本：v1.15.0操作系统: centos7192.168.1.70——master节点——flannel子网10.244.0.0/24192.168.1.71——node节点——flannel子网10.244.1.0/24 情景1：在master节点上发送ICMP包到node节点上的pod 在master节点上监听外网卡ens32#8472是flannel进程监听的">
 <meta name="twitter:image" content="https://img-blog.csdnimg.cn/20191003225922807.png">
   
@@ -88,7 +88,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      docker搭建zookeeper集群
+      kubernetes pod之间通信的抓包
     </h1>
   
 
@@ -174,7 +174,7 @@
           </li>
         
           <li>
-            <a href="/2019/10/04/kubernetes pod之间通信的抓包/">docker搭建zookeeper集群</a>
+            <a href="/2019/10/04/kubernetes pod之间通信的抓包/">kubernetes pod之间通信的抓包</a>
           </li>
         
           <li>

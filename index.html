@@ -62,6 +62,62 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-spring中的事件驱动" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/10/04/spring中的事件驱动/" class="article-date">
+  <time datetime="2019-10-04T06:02:45.388Z" itemprop="datePublished">2019-10-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/10/04/spring中的事件驱动/">spring事件驱动机制</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="1、最通俗的理解："><a href="#1、最通俗的理解：" class="headerlink" title="1、最通俗的理解："></a>1、最通俗的理解：</h1><p>spring ioc容器applicationContext它有一个组件叫事件多播器（ApplicationEventMulticaster），多播器是一堆监听者（applicationListener）的容器，applicationContext执行publishEvent()方法发布一个事件，它会主动for循环遍历多播器中的监听者来执行监听者的回调方法。</p>
+<hr>
+<h1 id="2、spring中会出现哪些事件："><a href="#2、spring中会出现哪些事件：" class="headerlink" title="2、spring中会出现哪些事件："></a>2、spring中会出现哪些事件：</h1><p>1）spring ioc容器刷新完成时，会发布ContextRefreshedEvent事件<br>2）进程运行中，程序员的自定义方法里通过applicationContext发布事件<br>3）spring ioc容器关闭会发布ContextClosedEvent</p>
+<hr>
+<h1 id="3、使用spring监听机制步骤："><a href="#3、使用spring监听机制步骤：" class="headerlink" title="3、使用spring监听机制步骤："></a>3、使用spring监听机制步骤：</h1><h2 id="1）写监听器"><a href="#1）写监听器" class="headerlink" title="1）写监听器"></a>1）写监听器</h2><p>方法1：<br>写一个监听器（ApplicationListener实现类）来监听某种事件（ApplicationEvent及其子类）<br>方发2：<br>@EventListener;<br>原理：使用EventListenerMethodProcessor处理器来解析方法上的@EventListener，如果一个组件包含一个@EventListener方法，则这个组件就是监听器。</p>
+<h2 id="2）把监听器加入到容器；"><a href="#2）把监听器加入到容器；" class="headerlink" title="2）把监听器加入到容器；"></a>2）把监听器加入到容器；</h2><h2 id="3）只要ioc容器中有相关事件的发布，我们就能监听到这个事件"><a href="#3）只要ioc容器中有相关事件的发布，我们就能监听到这个事件" class="headerlink" title="3）只要ioc容器中有相关事件的发布，我们就能监听到这个事件"></a>3）只要ioc容器中有相关事件的发布，我们就能监听到这个事件</h2><p>例如一些ioc容器的系统事件：<br>ContextRefreshedEvent事件：容器刷新完成（所有bean都完全创建）会发布这个事件<br>ContextClosedEvent事件：关闭容器会发布这个事件<br>于是，相应监听器的回调方法就会执行。</p>
+<h2 id="4）spring-ioc容器如何发布一个事件："><a href="#4）spring-ioc容器如何发布一个事件：" class="headerlink" title="4）spring ioc容器如何发布一个事件："></a>4）spring ioc容器如何发布一个事件：</h2><p>applicationContext.publishEvent(事件)</p>
+<hr>
+<h1 id="4、事件发布后（即执行publishEvent-方法），会发生什么："><a href="#4、事件发布后（即执行publishEvent-方法），会发生什么：" class="headerlink" title="4、事件发布后（即执行publishEvent()方法），会发生什么："></a>4、事件发布后（即执行publishEvent()方法），会发生什么：</h1><p>3）publishEvent(new ContextRefreshedEvent(this));<br>     a）获取事件的多播器（派发器）：getApplicationEventMulticaster()<br>     b）多播器调用multicastEvent(  )派发事件：<br>     c）multicastEvent(  )的伪代码逻辑：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">      <span class="comment">//获取到所有订阅此事件的ApplicationListener；</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">final</span> ApplicationListener&lt;?&gt; listener : getApplicationListeners(event, type)) &#123;</span><br><span class="line"> <span class="comment">/*</span></span><br><span class="line"><span class="comment"> a）如果有Executor，可以支持使用Executor进行异步派发；</span></span><br><span class="line"><span class="comment">   Executor executor = getTaskExecutor();</span></span><br><span class="line"><span class="comment"> b）否则，同步的方式直接执行listener方法：</span></span><br><span class="line"><span class="comment">  invokeListener(listener, event)，拿到listener回调onApplicationEvent(  )方法；</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">｝</span><br></pre></td></tr></table></figure>
+
+<p>相关源码：<br><img src="https://img-blog.csdnimg.cn/20191004111224802.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述">                        </p>
+<hr>
+<h1 id="5、事件多播器（派发器）什么时候诞生"><a href="#5、事件多播器（派发器）什么时候诞生" class="headerlink" title="5、事件多播器（派发器）什么时候诞生"></a>5、事件多播器（派发器）什么时候诞生</h1><p>1）ioc容器创建对象：进入refresh()方法<br>2）refresh()中的initApplicationEventMulticaster()，这里即是初始化ApplicationEventMulticaster组件<br>&emsp; a）先去容器中找有没有id=[ applicationEventMulticaster ]的组件，存在则什么都不做。<br>&emsp; b）如果没有则执行this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory)，并且通过beanFactory.registerSingleton(String beanName, Object singletonObject)方法将事件多播器加入到ioc容器中。</p>
+<hr>
+<h1 id="6、监听器在什么时候被保存到事件多播器"><a href="#6、监听器在什么时候被保存到事件多播器" class="headerlink" title="6、监听器在什么时候被保存到事件多播器"></a>6、监听器在什么时候被保存到事件多播器</h1><p>1）容器创建对象：进入refresh();<br>2）refresh()中的registerListeners();<br>简约代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">//从容器中拿到所有的监听器，把他们注册到[ applicationEventMulticaster ]中；</span></span><br><span class="line">String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, <span class="keyword">true</span>, <span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//将listener注册到ApplicationEventMulticaster中</span></span><br><span class="line">getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);</span><br></pre></td></tr></table></figure>
+
+
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/10/04/spring中的事件驱动/" data-id="ck1bq3cza00004kri1a34wjj3" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-kubernetes pod之间通信的抓包" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2019/10/04/kubernetes pod之间通信的抓包/" class="article-date">
@@ -340,6 +396,10 @@
       <ul>
         
           <li>
+            <a href="/2019/10/04/spring中的事件驱动/">spring事件驱动机制</a>
+          </li>
+        
+          <li>
             <a href="/2019/10/04/kubernetes pod之间通信的抓包/">docker搭建zookeeper集群</a>
           </li>
         
@@ -353,10 +413,6 @@
         
           <li>
             <a href="/2019/10/04/zookeeper集群/">docker搭建zookeeper集群</a>
-          </li>
-        
-          <li>
-            <a href="/2019/10/04/hello-world/">Hello World</a>
           </li>
         
       </ul>

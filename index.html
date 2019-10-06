@@ -84,7 +84,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="1）概括"><a href="#1）概括" class="headerlink" title="1）概括"></a>1）概括</h1><p>Kubernetes控制器的删除有3种模式：<br>a、Foreground:<br>删除控制器之前，先删除控制器所管理的资源对象删除。<br>b、Background：<br>删除控制器后，控制器所管理的资源对象由GC在后台进行删除。<br>c、Orphan：<br>只删除控制器，不删除控制器所管理的资源对象。</p>
+        <h1 id="1）概括"><a href="#1）概括" class="headerlink" title="1）概括"></a>1）概括</h1><p>Kubernetes控制器的删除有3种模式：<br>a、Foreground：<br>删除控制器之前，先删除控制器所管理的资源对象删除。<br>b、Background：<br>删除控制器后，控制器所管理的资源对象由GC在后台进行删除。<br>c、Orphan：<br>只删除控制器，不删除控制器所管理的资源对象。</p>
 <hr>
 <h1 id="2）rest-api格式（以Deployment控制器为例）："><a href="#2）rest-api格式（以Deployment控制器为例）：" class="headerlink" title="2）rest api格式（以Deployment控制器为例）："></a>2）rest api格式（以Deployment控制器为例）：</h1><h2 id="a、只删除控制器（对应ReplicSet和Pod不删除）"><a href="#a、只删除控制器（对应ReplicSet和Pod不删除）" class="headerlink" title="a、只删除控制器（对应ReplicSet和Pod不删除）"></a>a、只删除控制器（对应ReplicSet和Pod不删除）</h2><p>DELETE /apis/apps/v1/namespaces/{namespace}/deployments/{name}<br>{<br>    “Kind”: “DeleteOptions”,<br>    “apiVersion”: “v1”,<br>    “propagationPolicy”: “Orphan”<br>}</p>
 <h2 id="b、前台级联删除（按照Pod-gt-ReplicaSet-gt-Deployment的顺序进行删除）"><a href="#b、前台级联删除（按照Pod-gt-ReplicaSet-gt-Deployment的顺序进行删除）" class="headerlink" title="b、前台级联删除（按照Pod-&gt;ReplicaSet-&gt;Deployment的顺序进行删除）"></a>b、前台级联删除（按照Pod-&gt;ReplicaSet-&gt;Deployment的顺序进行删除）</h2><p>DELETE /apis/apps/v1/namespaces/{namespace}/deployments/{name}<br>{<br>    “kind”: “DeleteOptions”,<br>    “apiVersion”: “v1”,<br>    “propagationPolicy”: “Foreground”<br>}</p>
@@ -163,9 +163,9 @@
 
 
   
-    <article id="post-kubernetes pod之间通信的抓包" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-kubernetes pod之间通信的抓包(flannel)" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2019/10/04/kubernetes pod之间通信的抓包/" class="article-date">
+    <a href="/2019/10/04/kubernetes pod之间通信的抓包(flannel)/" class="article-date">
   <time datetime="2019-10-03T17:55:27.882Z" itemprop="datePublished">2019-10-04</time>
 </a>
     
@@ -177,7 +177,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2019/10/04/kubernetes pod之间通信的抓包/">kubernetes pod之间通信的抓包</a>
+      <a class="article-title" href="/2019/10/04/kubernetes pod之间通信的抓包(flannel)/">kubernetes pod之间通信的抓包(flannel)</a>
     </h1>
   
 
@@ -201,7 +201,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/10/04/kubernetes pod之间通信的抓包/" data-id="ck1b0460o0000ncri42v0nkpf" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/10/04/kubernetes pod之间通信的抓包(flannel)/" data-id="ck1f2xhqc0000ikris77ryog0" class="article-share-link">Share</a>
       
       
     </footer>
@@ -449,7 +449,7 @@
           </li>
         
           <li>
-            <a href="/2019/10/04/kubernetes pod之间通信的抓包/">kubernetes pod之间通信的抓包</a>
+            <a href="/2019/10/04/kubernetes pod之间通信的抓包(flannel)/">kubernetes pod之间通信的抓包(flannel)</a>
           </li>
         
           <li>

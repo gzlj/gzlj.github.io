@@ -7,19 +7,19 @@
   
   <title>Kubernetes控制器删除策略 | Pretty Boy</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="1）概括Kubernetes控制器的删除有3种模式：a、Foreground:删除控制器之前，先删除控制器所管理的资源对象删除。b、Background：删除控制器后，控制器所管理的资源对象由GC在后台进行删除。c、Orphan：只删除控制器，不删除控制器所管理的资源对象。  2）rest api格式（以Deployment控制器为例）：a、只删除控制器（对应ReplicSet和Pod不删除）DE">
+  <meta name="description" content="1）概括Kubernetes控制器的删除有3种模式：a、Foreground：删除控制器之前，先删除控制器所管理的资源对象删除。b、Background：删除控制器后，控制器所管理的资源对象由GC在后台进行删除。c、Orphan：只删除控制器，不删除控制器所管理的资源对象。  2）rest api格式（以Deployment控制器为例）：a、只删除控制器（对应ReplicSet和Pod不删除）DE">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Kubernetes控制器删除策略">
 <meta property="og:url" content="http://yoursite.com/2019/10/06/kubernetes控制器删除策略/index.html">
 <meta property="og:site_name" content="Pretty Boy">
-<meta property="og:description" content="1）概括Kubernetes控制器的删除有3种模式：a、Foreground:删除控制器之前，先删除控制器所管理的资源对象删除。b、Background：删除控制器后，控制器所管理的资源对象由GC在后台进行删除。c、Orphan：只删除控制器，不删除控制器所管理的资源对象。  2）rest api格式（以Deployment控制器为例）：a、只删除控制器（对应ReplicSet和Pod不删除）DE">
+<meta property="og:description" content="1）概括Kubernetes控制器的删除有3种模式：a、Foreground：删除控制器之前，先删除控制器所管理的资源对象删除。b、Background：删除控制器后，控制器所管理的资源对象由GC在后台进行删除。c、Orphan：只删除控制器，不删除控制器所管理的资源对象。  2）rest api格式（以Deployment控制器为例）：a、只删除控制器（对应ReplicSet和Pod不删除）DE">
 <meta property="og:locale" content="en">
 <meta property="og:image" content="https://img-blog.csdnimg.cn/201910062147586.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70">
 <meta property="og:image" content="https://img-blog.csdnimg.cn/20191006214803883.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70">
-<meta property="og:updated_time" content="2019-10-06T13:59:12.702Z">
+<meta property="og:updated_time" content="2019-10-06T14:24:52.087Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Kubernetes控制器删除策略">
-<meta name="twitter:description" content="1）概括Kubernetes控制器的删除有3种模式：a、Foreground:删除控制器之前，先删除控制器所管理的资源对象删除。b、Background：删除控制器后，控制器所管理的资源对象由GC在后台进行删除。c、Orphan：只删除控制器，不删除控制器所管理的资源对象。  2）rest api格式（以Deployment控制器为例）：a、只删除控制器（对应ReplicSet和Pod不删除）DE">
+<meta name="twitter:description" content="1）概括Kubernetes控制器的删除有3种模式：a、Foreground：删除控制器之前，先删除控制器所管理的资源对象删除。b、Background：删除控制器后，控制器所管理的资源对象由GC在后台进行删除。c、Orphan：只删除控制器，不删除控制器所管理的资源对象。  2）rest api格式（以Deployment控制器为例）：a、只删除控制器（对应ReplicSet和Pod不删除）DE">
 <meta name="twitter:image" content="https://img-blog.csdnimg.cn/201910062147586.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70">
   
     <link rel="alternate" href="/atom.xml" title="Pretty Boy" type="application/atom+xml">
@@ -89,7 +89,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="1）概括"><a href="#1）概括" class="headerlink" title="1）概括"></a>1）概括</h1><p>Kubernetes控制器的删除有3种模式：<br>a、Foreground:<br>删除控制器之前，先删除控制器所管理的资源对象删除。<br>b、Background：<br>删除控制器后，控制器所管理的资源对象由GC在后台进行删除。<br>c、Orphan：<br>只删除控制器，不删除控制器所管理的资源对象。</p>
+        <h1 id="1）概括"><a href="#1）概括" class="headerlink" title="1）概括"></a>1）概括</h1><p>Kubernetes控制器的删除有3种模式：<br>a、Foreground：<br>删除控制器之前，先删除控制器所管理的资源对象删除。<br>b、Background：<br>删除控制器后，控制器所管理的资源对象由GC在后台进行删除。<br>c、Orphan：<br>只删除控制器，不删除控制器所管理的资源对象。</p>
 <hr>
 <h1 id="2）rest-api格式（以Deployment控制器为例）："><a href="#2）rest-api格式（以Deployment控制器为例）：" class="headerlink" title="2）rest api格式（以Deployment控制器为例）："></a>2）rest api格式（以Deployment控制器为例）：</h1><h2 id="a、只删除控制器（对应ReplicSet和Pod不删除）"><a href="#a、只删除控制器（对应ReplicSet和Pod不删除）" class="headerlink" title="a、只删除控制器（对应ReplicSet和Pod不删除）"></a>a、只删除控制器（对应ReplicSet和Pod不删除）</h2><p>DELETE /apis/apps/v1/namespaces/{namespace}/deployments/{name}<br>{<br>    “Kind”: “DeleteOptions”,<br>    “apiVersion”: “v1”,<br>    “propagationPolicy”: “Orphan”<br>}</p>
 <h2 id="b、前台级联删除（按照Pod-gt-ReplicaSet-gt-Deployment的顺序进行删除）"><a href="#b、前台级联删除（按照Pod-gt-ReplicaSet-gt-Deployment的顺序进行删除）" class="headerlink" title="b、前台级联删除（按照Pod-&gt;ReplicaSet-&gt;Deployment的顺序进行删除）"></a>b、前台级联删除（按照Pod-&gt;ReplicaSet-&gt;Deployment的顺序进行删除）</h2><p>DELETE /apis/apps/v1/namespaces/{namespace}/deployments/{name}<br>{<br>    “kind”: “DeleteOptions”,<br>    “apiVersion”: “v1”,<br>    “propagationPolicy”: “Foreground”<br>}</p>
@@ -159,7 +159,7 @@
           </li>
         
           <li>
-            <a href="/2019/10/04/kubernetes pod之间通信的抓包/">kubernetes pod之间通信的抓包</a>
+            <a href="/2019/10/04/kubernetes pod之间通信的抓包(flannel)/">kubernetes pod之间通信的抓包(flannel)</a>
           </li>
         
           <li>

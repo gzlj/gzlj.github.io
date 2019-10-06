@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+
+  
+  <title>Kubernetes控制器删除策略 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="1）概括Kubernetes控制器的删除有3种模式：a、Foreground:删除控制器之前，先删除控制器所管理的资源对象删除。b、Background：删除控制器后，控制器所管理的资源对象由GC在后台进行删除。c、Orphan：只删除控制器，不删除控制器所管理的资源对象。  2）rest api格式（以Deployment控制器为例）：a、只删除控制器（对应ReplicSet和Pod不删除）DE">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetes控制器删除策略">
+<meta property="og:url" content="http://yoursite.com/2019/10/06/kubernetes控制器删除策略/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="1）概括Kubernetes控制器的删除有3种模式：a、Foreground:删除控制器之前，先删除控制器所管理的资源对象删除。b、Background：删除控制器后，控制器所管理的资源对象由GC在后台进行删除。c、Orphan：只删除控制器，不删除控制器所管理的资源对象。  2）rest api格式（以Deployment控制器为例）：a、只删除控制器（对应ReplicSet和Pod不删除）DE">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/201910062147586.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20191006214803883.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70">
+<meta property="og:updated_time" content="2019-10-06T13:59:12.702Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kubernetes控制器删除策略">
+<meta name="twitter:description" content="1）概括Kubernetes控制器的删除有3种模式：a、Foreground:删除控制器之前，先删除控制器所管理的资源对象删除。b、Background：删除控制器后，控制器所管理的资源对象由GC在后台进行删除。c、Orphan：只删除控制器，不删除控制器所管理的资源对象。  2）rest api格式（以Deployment控制器为例）：a、只删除控制器（对应ReplicSet和Pod不删除）DE">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/201910062147586.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-kubernetes控制器删除策略" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/10/06/kubernetes控制器删除策略/" class="article-date">
+  <time datetime="2019-10-06T13:58:24.892Z" itemprop="datePublished">2019-10-06</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Kubernetes控制器删除策略
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="1）概括"><a href="#1）概括" class="headerlink" title="1）概括"></a>1）概括</h1><p>Kubernetes控制器的删除有3种模式：<br>a、Foreground:<br>删除控制器之前，先删除控制器所管理的资源对象删除。<br>b、Background：<br>删除控制器后，控制器所管理的资源对象由GC在后台进行删除。<br>c、Orphan：<br>只删除控制器，不删除控制器所管理的资源对象。</p>
+<hr>
+<h1 id="2）rest-api格式（以Deployment控制器为例）："><a href="#2）rest-api格式（以Deployment控制器为例）：" class="headerlink" title="2）rest api格式（以Deployment控制器为例）："></a>2）rest api格式（以Deployment控制器为例）：</h1><h2 id="a、只删除控制器（对应ReplicSet和Pod不删除）"><a href="#a、只删除控制器（对应ReplicSet和Pod不删除）" class="headerlink" title="a、只删除控制器（对应ReplicSet和Pod不删除）"></a>a、只删除控制器（对应ReplicSet和Pod不删除）</h2><p>DELETE /apis/apps/v1/namespaces/{namespace}/deployments/{name}<br>{<br>    “Kind”: “DeleteOptions”,<br>    “apiVersion”: “v1”,<br>    “propagationPolicy”: “Orphan”<br>}</p>
+<h2 id="b、前台级联删除（按照Pod-gt-ReplicaSet-gt-Deployment的顺序进行删除）"><a href="#b、前台级联删除（按照Pod-gt-ReplicaSet-gt-Deployment的顺序进行删除）" class="headerlink" title="b、前台级联删除（按照Pod-&gt;ReplicaSet-&gt;Deployment的顺序进行删除）"></a>b、前台级联删除（按照Pod-&gt;ReplicaSet-&gt;Deployment的顺序进行删除）</h2><p>DELETE /apis/apps/v1/namespaces/{namespace}/deployments/{name}<br>{<br>    “kind”: “DeleteOptions”,<br>    “apiVersion”: “v1”,<br>    “propagationPolicy”: “Foreground”<br>}</p>
+<h2 id="c、后台级联删除（按照Deployment-gt-ReplicaSet-gt-Pod的顺序进行删除）"><a href="#c、后台级联删除（按照Deployment-gt-ReplicaSet-gt-Pod的顺序进行删除）" class="headerlink" title="c、后台级联删除（按照Deployment-&gt;ReplicaSet-&gt;Pod的顺序进行删除）"></a>c、后台级联删除（按照Deployment-&gt;ReplicaSet-&gt;Pod的顺序进行删除）</h2><p>DELETE /apis/apps/v1/namespaces/{namespace}/deployments/{name}<br>{<br>    “kind”: “DeleteOptions”,<br>    “apiVersion”: “v1”,<br>    “propagationPolicy”: “Background”<br>}</p>
+<hr>
+<h1 id="3）例子："><a href="#3）例子：" class="headerlink" title="3）例子："></a>3）例子：</h1><h2 id="a、Orphan模式例子"><a href="#a、Orphan模式例子" class="headerlink" title="a、Orphan模式例子"></a>a、Orphan模式例子</h2><p>删除请求的请求体中指定了模式是Orphan：<br>{<br>    “Kind”: “DeleteOptions”,<br>    “apiVersion”: “v1”,<br>    “propagationPolicy”: “Orphan”<br>}<br><img src="https://img-blog.csdnimg.cn/201910062147586.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br>发现：控制器所管理的pod对象并没有被删除<br><img src="https://img-blog.csdnimg.cn/20191006214803883.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L25hbmdvbmdoZW4=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<h2 id="b、Background模式例子"><a href="#b、Background模式例子" class="headerlink" title="b、Background模式例子"></a>b、Background模式例子</h2><p>使用kubectl删除控制器，查看具体的命令详细，发现是Background模式：<br> <strong>-bash-4.2# kubectl delete ds nginx-ingress-controller -n ingress-nginx -v 10</strong></p>
+<p>I0730 11:54:08.751432   22493 loader.go:359] Config loaded from file:  /root/.kube/config<br>I0730 11:54:08.752544   22493 cached_discovery.go:114] returning cached discovery info from /root/.kube/cache/discovery/192.168.35.75_16443/servergroups.json<br>I0730 11:54:08.753276   22493 cached_discovery.go:71] returning cached discovery info from /root/.kube/cache/discovery/192.168.35.75_16443/authorization.k8s.io/v1/serverresources.json<br>I0730 11:54:08.753301   22493 cached_discovery.go:71] returning cached discovery info from /root/.kube/cache/discovery/192.168.35.75_16443/metrics.k8s.io/v1beta1/serverresources.json<br>…<br>…<br>…<br>I0730 11:54:08.794908   22493 request.go:947] Request Body: <strong>{“propagationPolicy”:”Background”}</strong><br>I0730 11:54:08.795008   22493 round_trippers.go:419] curl -k -v -XDELETE  -H “Accept: application/json” -H “Content-Type: application/json” -H “User-Agent: kubectl/v1.15.1 (linux/amd64) kubernetes/4485c6f” ‘<a href="https://192.168.35.75:16443/apis/extensions/v1beta1/namespaces/ingress-nginx/daemonsets/nginx-ingress-controller&#39;" target="_blank" rel="noopener">https://192.168.35.75:16443/apis/extensions/v1beta1/namespaces/ingress-nginx/daemonsets/nginx-ingress-controller&#39;</a><br>I0730 11:54:08.823891   22493 round_trippers.go:438] DELETE <a href="https://192.168.35.75:16443/apis/extensions/v1beta1/namespaces/ingress-nginx/daemonsets/nginx-ingress-controller" target="_blank" rel="noopener">https://192.168.35.75:16443/apis/extensions/v1beta1/namespaces/ingress-nginx/daemonsets/nginx-ingress-controller</a> 200 OK in 28 milliseconds<br>I0730 11:54:08.823918   22493 round_trippers.go:444] Response Headers:<br>I0730 11:54:08.823931   22493 round_trippers.go:447]     Content-Type: application/json<br>I0730 11:54:08.823939   22493 round_trippers.go:447]     Content-Length: 201<br>I0730 11:54:08.823947   22493 round_trippers.go:447]     Date: Tue, 30 Jul 2019 03:54:08 GMT<br>I0730 11:54:08.823983   22493 request.go:947] Response Body: {“kind”:”Status”,”apiVersion”:”v1”,”metadata”:{},”status”:”Success”,”details”:{“name”:”nginx-ingress-controller”,”group”:”extensions”,”kind”:”daemonsets”,”uid”:”2918e9da-70d9-4752-bdd2-a26c1dea607e”}}<br>daemonset.extensions “nginx-ingress-controller” deleted</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/10/06/kubernetes控制器删除策略/" data-id="ck1f1z4lk0000y0rig31ailyk" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2019/10/04/spring中的事件驱动/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">spring事件驱动机制</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/10/06/kubernetes控制器删除策略/">Kubernetes控制器删除策略</a>
+          </li>
+        
+          <li>
+            <a href="/2019/10/04/spring中的事件驱动/">spring事件驱动机制</a>
+          </li>
+        
+          <li>
+            <a href="/2019/10/04/kubernetes pod之间通信的抓包/">kubernetes pod之间通信的抓包</a>
+          </li>
+        
+          <li>
+            <a href="/2019/10/04/docker、namespace、crgoup的基础原理和测试/">docker、namespace、crgoup的基础原理和测试</a>
+          </li>
+        
+          <li>
+            <a href="/2019/10/04/cgroup/">(no title)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

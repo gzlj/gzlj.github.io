@@ -14,7 +14,7 @@
 <meta property="og:site_name" content="Pretty Boy">
 <meta property="og:description" content="概述代理性质的进程需要在每一个节点上，或多个节点上运行，此时可以使用kuberntes daemonset来实现。在实际中，一般会将日志采集的代理、网络插件通过daemonset方式及进行部署。 大致原理daemonset的控制器会监听kuberntes的daemonset对象、pod对象、node对象，这些被监听的对象之变动，就会触发syncLoop循环让kubernetes集群朝着daemon">
 <meta property="og:locale" content="en">
-<meta property="og:updated_time" content="2019-12-20T17:08:26.012Z">
+<meta property="og:updated_time" content="2019-12-20T17:13:29.326Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="kubernetes daemonset基础原理">
 <meta name="twitter:description" content="概述代理性质的进程需要在每一个节点上，或多个节点上运行，此时可以使用kuberntes daemonset来实现。在实际中，一般会将日志采集的代理、网络插件通过daemonset方式及进行部署。 大致原理daemonset的控制器会监听kuberntes的daemonset对象、pod对象、node对象，这些被监听的对象之变动，就会触发syncLoop循环让kubernetes集群朝着daemon">
@@ -94,12 +94,8 @@
 <p>3）pod数量一致性：实际创建Pod和删除pod：<br>把node name列表汇总，待删除pod列表汇总，最后将这两者输入到一个方法来实际调用apiserver接口创建pod和删除pod即可，这样就达到期望状态。</p>
 <p>4）pod版本一致性：<br>调用rollingUpdate()，本质还是通过删除部分Running状态pod和非Running状态的pod来实现更新</p>
 <p>5)更新daemonset对象的status字段</p>
-<h1 id="重点方法"><a href="#重点方法" class="headerlink" title="重点方法"></a>重点方法</h1><pre><code>              |-&gt; dsc.getNodesToDaemonPods()  //获取当前状态
-              |
-              |
-|-&gt; manage --&gt;|-&gt; dsc.podsShouldBeOnNode()  ---&gt; dsc.nodeShouldRunDaemonPod    //汇总需要创建的pod和待删除的Pod
-|             |
-|             |</code></pre><p>syncDaemonSet –&gt; |             |-&gt; dsc.syncNodes  //Pod数量一致性<br>                  |<br>                  |-&gt; rollingUpdate  //Pod版本一致性<br>                  |<br>                  |<br>                  |-&gt; updateDaemonSetStatus  //更新daemonset对象的status字段</p>
+<h1 id="重点方法"><a href="#重点方法" class="headerlink" title="重点方法"></a>重点方法</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">                                |-&gt; dsc.getNodesToDaemonPods()  //获取当前状态</span><br><span class="line">                                |</span><br><span class="line">                                |</span><br><span class="line">                  |-&gt; manage --&gt;|-&gt; dsc.podsShouldBeOnNode() --&gt; dsc.nodeShouldRunDaemonPod	//汇总需要创建的pod和待删除的Pod</span><br><span class="line">                  |             |</span><br><span class="line">                  |             |</span><br><span class="line">syncDaemonSet --&gt; |             |-&gt; dsc.syncNodes  //Pod数量一致性</span><br><span class="line">                  |</span><br><span class="line">                  |-&gt; rollingUpdate  //Pod版本一致性</span><br><span class="line">                  |</span><br><span class="line">                  |</span><br><span class="line">                  |-&gt; updateDaemonSetStatus  //更新daemonset对象的status字段</span><br></pre></td></tr></table></figure>
+
 
       
     </div>

@@ -62,6 +62,56 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-kubernetes daemonset基础原理" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/12/21/kubernetes daemonset基础原理/" class="article-date">
+  <time datetime="2019-12-20T16:55:30.744Z" itemprop="datePublished">2019-12-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/12/21/kubernetes daemonset基础原理/">kubernetes daemonset基础原理</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>代理性质的进程需要在每一个节点上，或多个节点上运行，此时可以使用kuberntes daemonset来实现。在实际中，一般会将日志采集的代理、网络插件通过daemonset方式及进行部署。</p>
+<h1 id="大致原理"><a href="#大致原理" class="headerlink" title="大致原理"></a>大致原理</h1><p>daemonset的控制器会监听kuberntes的daemonset对象、pod对象、node对象，这些被监听的对象之变动，就会触发syncLoop循环让kubernetes集群朝着daemonset对象描述的状态进行演进。</p>
+<h1 id="细节实现"><a href="#细节实现" class="headerlink" title="细节实现"></a>细节实现</h1><p>控制器每一次syncLoop都会进行下面5步操作</p>
+<p>1）获取当前状态的map: 这个map描述着坐落到每一个节点的daemonset pod<br>nodename –&gt; [daemonPod 1, daemonPod 2 …]    </p>
+<p>2）遍历每一个node：<br>podsShouldBeOnNode(node, map, ds)  –&gt;  得到两个列表（具体过程会受调度器的预选算法影响）：<br>a、一个node name列表（不为空，则表示该node需要新建一个pod）<br>b、该node上待删除的pod列表。</p>
+<p>3）pod数量一致性：实际创建Pod和删除pod：<br>把node name列表汇总，待删除pod列表汇总，最后将这两者输入到一个方法来实际调用apiserver接口创建pod和删除pod即可，这样就达到期望状态。</p>
+<p>4）pod版本一致性：<br>调用rollingUpdate()，本质还是通过删除部分Running状态pod和非Running状态的pod来实现更新</p>
+<p>5)更新daemonset对象的status字段</p>
+<h1 id="重点方法"><a href="#重点方法" class="headerlink" title="重点方法"></a>重点方法</h1><pre><code>              |-&gt; dsc.getNodesToDaemonPods()  //获取当前状态
+              |
+              |
+|-&gt; manage --&gt;|-&gt; dsc.podsShouldBeOnNode()  ---&gt; dsc.nodeShouldRunDaemonPod    //汇总需要创建的pod和待删除的Pod
+|             |
+|             |</code></pre><p>syncDaemonSet –&gt; |             |-&gt; dsc.syncNodes  //Pod数量一致性<br>                  |<br>                  |-&gt; rollingUpdate  //Pod版本一致性<br>                  |<br>                  |<br>                  |-&gt; updateDaemonSetStatus  //更新daemonset对象的status字段</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/12/21/kubernetes daemonset基础原理/" data-id="ck4eerm4z0000toriot9vk2xk" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-kubernetes控制器删除策略" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2019/10/06/kubernetes控制器删除策略/" class="article-date">
@@ -428,7 +478,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li></ul>
     </div>
   </div>
 
@@ -439,6 +489,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2019/12/21/kubernetes daemonset基础原理/">kubernetes daemonset基础原理</a>
+          </li>
         
           <li>
             <a href="/2019/10/06/kubernetes控制器删除策略/">Kubernetes控制器删除策略</a>
@@ -454,10 +508,6 @@
         
           <li>
             <a href="/2019/10/04/docker、namespace、crgoup的基础原理和测试/">docker、namespace、crgoup的基础原理和测试</a>
-          </li>
-        
-          <li>
-            <a href="/2019/10/04/cgroup/">(no title)</a>
           </li>
         
       </ul>

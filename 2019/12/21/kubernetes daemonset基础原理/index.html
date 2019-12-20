@@ -5,19 +5,19 @@
   
 
   
-  <title>kubernetes daemonset基础原理 | Pretty Boy</title>
+  <title>Pretty Boy</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="概述代理性质的进程需要在每一个节点上，或多个节点上运行，此时可以使用kuberntes daemonset来实现。在实际中，一般会将日志采集的代理、网络插件通过daemonset方式及进行部署。 大致原理daemonset的控制器会监听kuberntes的daemonset对象、pod对象、node对象，这些被监听的对象之变动，就会触发syncLoop循环让kubernetes集群朝着daemon">
+  <meta name="description" content="1）概述代理性质的进程需要在每一个节点上，或多个节点上运行，此时可以使用kuberntes daemonset来实现。在实际中，一般会将日志采集的代理、网络插件通过daemonset方式及进行部署。 2）大致原理daemonset的控制器会监听kuberntes的daemonset对象、pod对象、node对象，这些被监听的对象之变动，就会触发syncLoop循环让kubernetes集群朝着da">
 <meta property="og:type" content="article">
-<meta property="og:title" content="kubernetes daemonset基础原理">
+<meta property="og:title" content="Pretty Boy">
 <meta property="og:url" content="http://yoursite.com/2019/12/21/kubernetes daemonset基础原理/index.html">
 <meta property="og:site_name" content="Pretty Boy">
-<meta property="og:description" content="概述代理性质的进程需要在每一个节点上，或多个节点上运行，此时可以使用kuberntes daemonset来实现。在实际中，一般会将日志采集的代理、网络插件通过daemonset方式及进行部署。 大致原理daemonset的控制器会监听kuberntes的daemonset对象、pod对象、node对象，这些被监听的对象之变动，就会触发syncLoop循环让kubernetes集群朝着daemon">
+<meta property="og:description" content="1）概述代理性质的进程需要在每一个节点上，或多个节点上运行，此时可以使用kuberntes daemonset来实现。在实际中，一般会将日志采集的代理、网络插件通过daemonset方式及进行部署。 2）大致原理daemonset的控制器会监听kuberntes的daemonset对象、pod对象、node对象，这些被监听的对象之变动，就会触发syncLoop循环让kubernetes集群朝着da">
 <meta property="og:locale" content="en">
-<meta property="og:updated_time" content="2019-12-20T17:13:29.326Z">
+<meta property="og:updated_time" content="2019-12-20T17:15:55.283Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="kubernetes daemonset基础原理">
-<meta name="twitter:description" content="概述代理性质的进程需要在每一个节点上，或多个节点上运行，此时可以使用kuberntes daemonset来实现。在实际中，一般会将日志采集的代理、网络插件通过daemonset方式及进行部署。 大致原理daemonset的控制器会监听kuberntes的daemonset对象、pod对象、node对象，这些被监听的对象之变动，就会触发syncLoop循环让kubernetes集群朝着daemon">
+<meta name="twitter:title" content="Pretty Boy">
+<meta name="twitter:description" content="1）概述代理性质的进程需要在每一个节点上，或多个节点上运行，此时可以使用kuberntes daemonset来实现。在实际中，一般会将日志采集的代理、网络插件通过daemonset方式及进行部署。 2）大致原理daemonset的控制器会监听kuberntes的daemonset对象、pod对象、node对象，这些被监听的对象之变动，就会触发syncLoop循环让kubernetes集群朝着da">
   
     <link rel="alternate" href="/atom.xml" title="Pretty Boy" type="application/atom+xml">
   
@@ -74,28 +74,19 @@
   <div class="article-inner">
     
     
-      <header class="article-header">
-        
-  
-    <h1 class="article-title" itemprop="name">
-      kubernetes daemonset基础原理
-    </h1>
-  
-
-      </header>
-    
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>代理性质的进程需要在每一个节点上，或多个节点上运行，此时可以使用kuberntes daemonset来实现。在实际中，一般会将日志采集的代理、网络插件通过daemonset方式及进行部署。</p>
-<h1 id="大致原理"><a href="#大致原理" class="headerlink" title="大致原理"></a>大致原理</h1><p>daemonset的控制器会监听kuberntes的daemonset对象、pod对象、node对象，这些被监听的对象之变动，就会触发syncLoop循环让kubernetes集群朝着daemonset对象描述的状态进行演进。</p>
-<h1 id="细节实现"><a href="#细节实现" class="headerlink" title="细节实现"></a>细节实现</h1><p>控制器每一次syncLoop都会进行下面5步操作</p>
+        <h1 id="1）概述"><a href="#1）概述" class="headerlink" title="1）概述"></a>1）概述</h1><p>代理性质的进程需要在每一个节点上，或多个节点上运行，此时可以使用kuberntes daemonset来实现。在实际中，一般会将日志采集的代理、网络插件通过daemonset方式及进行部署。</p>
+<h1 id="2）大致原理"><a href="#2）大致原理" class="headerlink" title="2）大致原理"></a>2）大致原理</h1><p>daemonset的控制器会监听kuberntes的daemonset对象、pod对象、node对象，这些被监听的对象之变动，就会触发syncLoop循环让kubernetes集群朝着daemonset对象描述的状态进行演进。</p>
+<h1 id="3）细节实现"><a href="#3）细节实现" class="headerlink" title="3）细节实现"></a>3）细节实现</h1><p>控制器每一次syncLoop都会进行下面5步操作</p>
 <p>1）获取当前状态的map: 这个map描述着坐落到每一个节点的daemonset pod<br>nodename –&gt; [daemonPod 1, daemonPod 2 …]    </p>
 <p>2）遍历每一个node：<br>podsShouldBeOnNode(node, map, ds)  –&gt;  得到两个列表（具体过程会受调度器的预选算法影响）：<br>a、一个node name列表（不为空，则表示该node需要新建一个pod）<br>b、该node上待删除的pod列表。</p>
 <p>3）pod数量一致性：实际创建Pod和删除pod：<br>把node name列表汇总，待删除pod列表汇总，最后将这两者输入到一个方法来实际调用apiserver接口创建pod和删除pod即可，这样就达到期望状态。</p>
 <p>4）pod版本一致性：<br>调用rollingUpdate()，本质还是通过删除部分Running状态pod和非Running状态的pod来实现更新</p>
 <p>5)更新daemonset对象的status字段</p>
-<h1 id="重点方法"><a href="#重点方法" class="headerlink" title="重点方法"></a>重点方法</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">                                |-&gt; dsc.getNodesToDaemonPods()  //获取当前状态</span><br><span class="line">                                |</span><br><span class="line">                                |</span><br><span class="line">                  |-&gt; manage --&gt;|-&gt; dsc.podsShouldBeOnNode() --&gt; dsc.nodeShouldRunDaemonPod	//汇总需要创建的pod和待删除的Pod</span><br><span class="line">                  |             |</span><br><span class="line">                  |             |</span><br><span class="line">syncDaemonSet --&gt; |             |-&gt; dsc.syncNodes  //Pod数量一致性</span><br><span class="line">                  |</span><br><span class="line">                  |-&gt; rollingUpdate  //Pod版本一致性</span><br><span class="line">                  |</span><br><span class="line">                  |</span><br><span class="line">                  |-&gt; updateDaemonSetStatus  //更新daemonset对象的status字段</span><br></pre></td></tr></table></figure>
+<h1 id="4）重点方法"><a href="#4）重点方法" class="headerlink" title="4）重点方法"></a>4）重点方法</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">                                |-&gt; dsc.getNodesToDaemonPods()  //获取当前状态</span><br><span class="line">                                |</span><br><span class="line">                                |</span><br><span class="line">                  |-&gt; manage --&gt;|-&gt; dsc.podsShouldBeOnNode() --&gt; dsc.nodeShouldRunDaemonPod	//汇总需要创建的pod和待删除的Pod</span><br><span class="line">                  |             |</span><br><span class="line">                  |             |</span><br><span class="line">syncDaemonSet --&gt; |             |-&gt; dsc.syncNodes  //Pod数量一致性</span><br><span class="line">                  |</span><br><span class="line">                  |-&gt; rollingUpdate  //Pod版本一致性</span><br><span class="line">                  |</span><br><span class="line">                  |</span><br><span class="line">                  |-&gt; updateDaemonSetStatus  //更新daemonset对象的status字段</span><br></pre></td></tr></table></figure>
 
+<h1 id="5）参考"><a href="#5）参考" class="headerlink" title="5）参考"></a>5）参考</h1><p>1) <a href="https://www.jianshu.com/u/a004b422adae" target="_blank" rel="noopener">https://www.jianshu.com/u/a004b422adae</a></p>
 
       
     </div>
@@ -149,7 +140,7 @@
       <ul>
         
           <li>
-            <a href="/2019/12/21/kubernetes daemonset基础原理/">kubernetes daemonset基础原理</a>
+            <a href="/2019/12/21/kubernetes daemonset基础原理/">(no title)</a>
           </li>
         
           <li>

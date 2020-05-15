@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+
+  
+  <title>Pretty Boy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="1）概述replicaset对象描述一个[ 特定版本 ]的[ 应用 ]，控制着pod的属性（镜像、容器的环境变量等等）以及数量。说明：1）replicaset对象不控制pod对象的版本，针对的是同一个镜像的pod。2）deployment对象控制的是replicaset对象，它才能描述一个应用，因为应用有版本之分。 2）大致原理replicaset的控制器会监听kuberntes的pod对象、re">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Pretty Boy">
+<meta property="og:url" content="http://yoursite.com/2020/05/16/kubernetes replicaset基础原理/index.html">
+<meta property="og:site_name" content="Pretty Boy">
+<meta property="og:description" content="1）概述replicaset对象描述一个[ 特定版本 ]的[ 应用 ]，控制着pod的属性（镜像、容器的环境变量等等）以及数量。说明：1）replicaset对象不控制pod对象的版本，针对的是同一个镜像的pod。2）deployment对象控制的是replicaset对象，它才能描述一个应用，因为应用有版本之分。 2）大致原理replicaset的控制器会监听kuberntes的pod对象、re">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2020-05-15T18:35:38.325Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Pretty Boy">
+<meta name="twitter:description" content="1）概述replicaset对象描述一个[ 特定版本 ]的[ 应用 ]，控制着pod的属性（镜像、容器的环境变量等等）以及数量。说明：1）replicaset对象不控制pod对象的版本，针对的是同一个镜像的pod。2）deployment对象控制的是replicaset对象，它才能描述一个应用，因为应用有版本之分。 2）大致原理replicaset的控制器会监听kuberntes的pod对象、re">
+  
+    <link rel="alternate" href="/atom.xml" title="Pretty Boy" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Pretty Boy</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-kubernetes replicaset基础原理" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/05/16/kubernetes replicaset基础原理/" class="article-date">
+  <time datetime="2020-05-15T18:35:12.874Z" itemprop="datePublished">2020-05-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="1）概述"><a href="#1）概述" class="headerlink" title="1）概述"></a>1）概述</h1><p>replicaset对象描述一个[ 特定版本 ]的[ 应用 ]，控制着pod的属性（镜像、容器的环境变量等等）以及数量。<br>说明：<br>1）replicaset对象不控制pod对象的版本，针对的是同一个镜像的pod。<br>2）deployment对象控制的是replicaset对象，它才能描述一个应用，因为应用有版本之分。</p>
+<h1 id="2）大致原理"><a href="#2）大致原理" class="headerlink" title="2）大致原理"></a>2）大致原理</h1><p>replicaset的控制器会监听kuberntes的pod对象、replicaset对象，这些被监听的对象之变动，就会触发syncLoop循环(叫做syncReplicaSet()方法)让kubernetes集群朝着replicaset对象描述的状态进行演进。</p>
+<h1 id="3）细节实现"><a href="#3）细节实现" class="headerlink" title="3）细节实现"></a>3）细节实现</h1><p>控制器每一次执行回调方法syncReplicaSet()，都执行了以下操作：</p>
+<p>1）根据入参字符串key，获取rs对象:<br>namespace, name, err := cache.SplitMetaNamespaceKey(key)<br>rs, err := rsc.rsLister.ReplicaSets(namespace).Get(name)</p>
+<p>2）获得一个布尔值：检查是否需要真的执行同步pod数量的操作<br>rsNeedsSync := rsc.expectations.SatisfiedExpectations(key)</p>
+<p>3）获取rs对象底下的pod，这个pod列表称为filteredPods：<br>allPods, err := rsc.podLister.Pods(rs.Namespace).List(labels.Everything())<br>filteredPods := controller.FilterActivePods(allPods)<br>filteredPods, err = rsc.claimPods(rs, selector, filteredPods)</p>
+<p>4）根据rsNeedsSync的值决定是否同步pod的[ 数量 ]：实际创建Pod或删除pod：批量新建pod或删除pod<br>rsc.manageReplicas(filteredPods, rs)</p>
+<p>5）更新rs对象的status字段     </p>
+<h1 id="4）源码简易流程图"><a href="#4）源码简易流程图" class="headerlink" title="4）源码简易流程图"></a>4）源码简易流程图</h1><pre><code>
+                                SatisfiedExpectations(此机制决定是否真的执行manageReplicas()方法)
+                                    |
+                                    |
+                                    ∨                                    
+rs对象的变更或pod对象的变更 --&gt; syncReplicaSet方法 --&gt; manageReplicas(保持数量一致性：为rs创建pod或删除pod)  --&gt;  1.判断究竟是新建pod还是删除pod  
+                                                                                                         2. 创建为rs对象创建一个expectations对象，并设置add值/del值 
+                                                                                                         3.调用slowStartBatch()方法批量创建pod 或 删除经过筛选出的多余的pod  
+                                                                                                           4.更新rs对象关联的expectations对象
+                                        |
+                                        |
+                                        ∨
+                                updateReplicaSetStatus(更新rs对象的status字段)    </code></pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2020/05/16/kubernetes replicaset基础原理/" data-id="cka8jmc5z0000b4riee1aovn7" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2019/12/21/kubernetes daemonset基础原理/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title"></div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/05/16/kubernetes replicaset基础原理/">(no title)</a>
+          </li>
+        
+          <li>
+            <a href="/2019/12/21/kubernetes daemonset基础原理/">(no title)</a>
+          </li>
+        
+          <li>
+            <a href="/2019/10/06/kubernetes控制器删除策略/">Kubernetes控制器删除策略</a>
+          </li>
+        
+          <li>
+            <a href="/2019/10/04/spring中的事件驱动/">spring事件驱动机制</a>
+          </li>
+        
+          <li>
+            <a href="/2019/10/04/kubernetes pod之间通信的抓包(flannel)/">kubernetes pod之间通信的抓包(flannel)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 Liujun<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

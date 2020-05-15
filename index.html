@@ -62,6 +62,52 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-kubernetes replicaset基础原理" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/05/16/kubernetes replicaset基础原理/" class="article-date">
+  <time datetime="2020-05-15T18:35:12.874Z" itemprop="datePublished">2020-05-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="1）概述"><a href="#1）概述" class="headerlink" title="1）概述"></a>1）概述</h1><p>replicaset对象描述一个[ 特定版本 ]的[ 应用 ]，控制着pod的属性（镜像、容器的环境变量等等）以及数量。<br>说明：<br>1）replicaset对象不控制pod对象的版本，针对的是同一个镜像的pod。<br>2）deployment对象控制的是replicaset对象，它才能描述一个应用，因为应用有版本之分。</p>
+<h1 id="2）大致原理"><a href="#2）大致原理" class="headerlink" title="2）大致原理"></a>2）大致原理</h1><p>replicaset的控制器会监听kuberntes的pod对象、replicaset对象，这些被监听的对象之变动，就会触发syncLoop循环(叫做syncReplicaSet()方法)让kubernetes集群朝着replicaset对象描述的状态进行演进。</p>
+<h1 id="3）细节实现"><a href="#3）细节实现" class="headerlink" title="3）细节实现"></a>3）细节实现</h1><p>控制器每一次执行回调方法syncReplicaSet()，都执行了以下操作：</p>
+<p>1）根据入参字符串key，获取rs对象:<br>namespace, name, err := cache.SplitMetaNamespaceKey(key)<br>rs, err := rsc.rsLister.ReplicaSets(namespace).Get(name)</p>
+<p>2）获得一个布尔值：检查是否需要真的执行同步pod数量的操作<br>rsNeedsSync := rsc.expectations.SatisfiedExpectations(key)</p>
+<p>3）获取rs对象底下的pod，这个pod列表称为filteredPods：<br>allPods, err := rsc.podLister.Pods(rs.Namespace).List(labels.Everything())<br>filteredPods := controller.FilterActivePods(allPods)<br>filteredPods, err = rsc.claimPods(rs, selector, filteredPods)</p>
+<p>4）根据rsNeedsSync的值决定是否同步pod的[ 数量 ]：实际创建Pod或删除pod：批量新建pod或删除pod<br>rsc.manageReplicas(filteredPods, rs)</p>
+<p>5）更新rs对象的status字段     </p>
+<h1 id="4）源码简易流程图"><a href="#4）源码简易流程图" class="headerlink" title="4）源码简易流程图"></a>4）源码简易流程图</h1><pre><code>
+                                SatisfiedExpectations(此机制决定是否真的执行manageReplicas()方法)
+                                    |
+                                    |
+                                    ∨                                    
+rs对象的变更或pod对象的变更 --&gt; syncReplicaSet方法 --&gt; manageReplicas(保持数量一致性：为rs创建pod或删除pod)  --&gt;  1.判断究竟是新建pod还是删除pod  
+                                                                                                         2. 创建为rs对象创建一个expectations对象，并设置add值/del值 
+                                                                                                         3.调用slowStartBatch()方法批量创建pod 或 删除经过筛选出的多余的pod  
+                                                                                                           4.更新rs对象关联的expectations对象
+                                        |
+                                        |
+                                        ∨
+                                updateReplicaSetStatus(更新rs对象的status字段)    </code></pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2020/05/16/kubernetes replicaset基础原理/" data-id="cka8jmc5z0000b4riee1aovn7" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-kubernetes daemonset基础原理" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2019/12/21/kubernetes daemonset基础原理/" class="article-date">
@@ -465,7 +511,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li></ul>
     </div>
   </div>
 
@@ -476,6 +522,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2020/05/16/kubernetes replicaset基础原理/">(no title)</a>
+          </li>
         
           <li>
             <a href="/2019/12/21/kubernetes daemonset基础原理/">(no title)</a>
@@ -493,10 +543,6 @@
             <a href="/2019/10/04/kubernetes pod之间通信的抓包(flannel)/">kubernetes pod之间通信的抓包(flannel)</a>
           </li>
         
-          <li>
-            <a href="/2019/10/04/docker、namespace、crgoup的基础原理和测试/">docker、namespace、crgoup的基础原理和测试</a>
-          </li>
-        
       </ul>
     </div>
   </div>
@@ -509,7 +555,7 @@
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2019 Liujun<br>
+      &copy; 2020 Liujun<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
